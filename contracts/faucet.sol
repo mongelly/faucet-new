@@ -32,12 +32,6 @@ contract Faucet {
         return delegator;
     }
     
-    function getBalance() public view returns(uint256,uint256){
-        uint256 vetBalance = address(this).balance;
-        uint256 vthoBalance = this.$energy();
-        return (vetBalance,vthoBalance);
-    }
-    
     function deposit() public payable{}
     
     function airdrop() public {
