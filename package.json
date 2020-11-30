@@ -1,0 +1,29 @@
+{
+  "name": "faucet-new",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mongelly/faucet-new.git"
+  },
+  "keywords": [
+    "vechain",
+    "vip191",
+    "vip201"
+  ],
+  "author": "mog.lu@vechain.org",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mongelly/faucet-new/issues"
+  },
+  "homepage": "https://github.com/mongelly/faucet-new#readme",
+  "dependencies": {
+  }
+}
