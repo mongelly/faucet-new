@@ -5,7 +5,7 @@ import "./builtin.sol";
 contract Faucet {
     
     using Builtin for Faucet;
-    ExtensionV2 extensionv2 = Builtin.getExtensionV2();
+    Extension extension = Builtin.getExtension();
     
     address delegator;
     uint256 defaultVETAmount  = 100  * 1000000000000000000;
@@ -34,7 +34,7 @@ contract Faucet {
     
     function deposit() public payable{}
     
-    function airdrop() public {
+    function claim() public validDelegator{
         require((defaultVETAmount <= address(this).balance && defaultVTHOAmount <= this.$energy()),"insufficient balance");
         address(msg.sender).transfer(defaultVETAmount);
         this.$moveEnergyTo(msg.sender,defaultVTHOAmount);
@@ -53,7 +53,7 @@ contract Faucet {
     }
     
     modifier validDelegator(){
-        require(extensionv2.txGasPayer() == delegator,"invalid delegator");
+        require(extension.txGasPayer() == delegator,"invalid delegator");
         _;
     }
 }

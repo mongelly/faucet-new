@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 // Prototype is an account management model of VeChainThor.
 // In the account management model every contract has a master account, which, by default, is the creator of a contract.

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 /// @title Extension extends EVM functions.
 /// Extension gives an opportunity for the developer to get information of the current transaction and any history block within the range of genesis to best block.
