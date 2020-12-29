@@ -6,11 +6,18 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <link rel="icon" href="<%= BASE_URL %>favicon.png" />
     <title>VeChain TestNet Faucet</title>
+    <script>
+      if (!window.connex) {
+        // the app prefers running on test net
+        location.href =
+          'https://env.vechain.org/r/#/test/' + encodeURIComponent(location.href)
+      }
+    </script>
   </head>
   <body>
     <noscript>
       <strong
-        >We're sorry but faucet-new doesn't work properly without JavaScript
+        >We're sorry but faucet-app doesn't work properly without JavaScript
         enabled. Please enable it to continue.</strong
       >
     </noscript>

@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <PageHead v-if="isTestNet" />
+        <PageHead v-if="isTestNet"/>
         <section
             v-if="!isTestNet"
             class="nes-container with-title"
@@ -76,15 +76,15 @@
                 </div>
             </form>
         </section>
-        <PageFoot />
+        <PageFoot/>
     </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
-import PageHead from './components/PageHead.vue'
-import PageFoot from './components/PageFoot.vue'
-import status from './status'
+import { Component, Vue } from 'vue-property-decorator';
+import PageHead from './components/PageHead.vue';
+import PageFoot from './components/PageFoot.vue';
+import status from './status';
 
 @Component({
     components: {
@@ -93,114 +93,108 @@ import status from './status'
     },
 })
 export default class App extends Vue {
-    public address = ''
-    public loading = false
-    public msg = ''
-    public isSuccess = false
-    public status = status
-    public step = this.status.start.step
-    private txid = ''
-    private respError = ''
+    public address = '';
+    public loading = false;
+    public msg = '';
+    public isSuccess = false;
+    public status = status;
+    public step = this.status.start.step;
+    private syncReleaseUrl = `https://github.com/vechain/thor-sync.electron/releases`;
+    private txid = '';
+    private respError = '';
 
-    private isTestNet = true
-    private faucetAddress = "0x2042AFd23011b454e4F1C94Cf350AA9E09d0ddb4"
+    private isTestNet = true;
+
+    private faucetAddress = '0x2b990f387B513f6afA6b87A73F6533F2F19407ce';
     private claimABI = {
-		"constant": false,
-		"inputs": [],
-		"name": "claim",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-    }
-    private feedelegatorAPI = "http://localhost:18050/sign"
-    private authorizationID = "c164997a-e4e9-4b06-8242-c4389328704e"
+    constant: false,
+    inputs: [],
+    name: 'claim',
+    outputs: [],
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
+    };
+    private feedelegatorAPI = 'http://localhost:18050/sign';
+    private authorizationID = 'c164997a-e4e9-4b06-8242-c4389328704e';
 
     public async created() {
-        this.$ga.page('/faucet')
-        this.isTestNet = await this.checkNet()
+        this.$ga.page('/faucet');
+        this.isTestNet = await this.checkNet();
+    }
+
+    public openSync() {
+        const customProtocolDetection = require('custom-protocol-detection');
+        const vechainAppUrl = 'vechain-app:///' + encodeURIComponent(window.location.href);
+        const gotoDownload = () => {
+            window.location.href = this.syncReleaseUrl;
+        };
+        customProtocolDetection(vechainAppUrl, () => {
+            gotoDownload();
+        }, () => {
+            // TODO Open with sync
+        }, () => {
+            gotoDownload();
+        });
     }
 
     get shortTxid() {
-        return !this.txid
-            ? ''
-            : this.txid.substr(0, 6) + '......' + this.txid.substr(60, 66)
+        return !this.txid ? '' : this.txid.substr(0, 6) + '......' + this.txid.substr(60, 66);
     }
 
     public async checkNet() {
-        const block = this.$connex.thor.block(0)
-        const firstBlock = await block.get()
-        return (
-            firstBlock!.id ===
-            '0x000000000b2bce3c70bc649a02749e8687721b09ed2e15997f466536b20bb127'
-        )
+        const block = connex.thor.block(0);
+        const firstBlock = await block.get();
+        return firstBlock!.id === '0x000000000b2bce3c70bc649a02749e8687721b09ed2e15997f466536b20bb127';
     }
 
-    public async postRequest(
-        content: Connex.Vendor.CertMessage & Connex.Vendor.TxResponse
-    ) {
+    public reset() {
+        this.step = this.status.start.step;
+    }
+
+    public async signTx() {
+        const claimMethod = connex.thor.account(this.faucetAddress).method(this.claimABI);
+        const clause = claimMethod.asClause();
+        const msg: Connex.Vendor.TxMessage = [
+            clause,
+        ];
+        const signingService = connex.vendor.sign('tx');
+
+        signingService
+        .gas(60000)
+        .delegate(this.delegationHandler)
+        .request(msg)
+        .then((result) => {
+            this.txid = result.txid,
+            this.step = status.success.step;
+        }).catch((err) => {
+            this.step = this.status.tryAgain.step;
+        });
+    }
+
+    private async delegationHandler(unsignedTx: { raw: string, origin: string }) {
         try {
-            const resp = await fetch(
-                'https://faucet-new.outofgas.io/requests',
-                {
-                    method: 'post',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    referrer: 'no-referrer',
-                    body: JSON.stringify(content),
-                }
-            )
-            if (
-                resp.status === 200 &&
-                resp.headers.get('content-type')!.includes('application/json')
-            ) {
-                const body = await resp.json()
-                this.txid = body.id
-                this.step = status.success.step
+            const requestbody = JSON.stringify({
+                raw: unsignedTx.raw,
+                origin: unsignedTx.origin,
+            });
+            const token = await this.$recaptcha('claim');
+            const urlApi = this.feedelegatorAPI + '?' + `authorization=${this.authorizationID}&recaptcha=${token}`;
+            const resp = await fetch(urlApi, {
+                method: 'post',
+                cache: 'no-cache',
+                headers: {'Content-Type': 'application/json'},
+                body: requestbody,
+            });
+            if (resp.status === 200 && resp.headers.get('content-type')!.includes('application/json')) {
+                const body = await resp.json();
+                return { signature: body.signature };
             } else {
-                if (resp.status === 403) {
-                    const body = await resp.json()
-                    const code = body.type
-                    if (code === 400 || code === 401) {
-                        this.step = this.status.reAsk.step
-                    } else if (code === 402 || code === 403) {
-                        this.step = this.status.insufficient.step
-                    } else if (code === 404 || code === 405) {
-                        this.step = this.status.outOfLimitL.step
-                    } else if (code === 300 || code === 301) {
-                        this.step = this.status.tryAgain.step
-                    } else {
-                        throw new Error('unknow error')
-                    }
-                } else {
-                    throw new Error('unknow error')
-                }
+                throw new Error('delegation error');
             }
         } catch (error) {
-            this.step = this.status.tryAgain.step
+            throw new Error('delegation error');
         }
-    }
-    public reset() {
-        this.step = this.status.start.step
-    }
-
-    public async signTx(){
-        const token = ""
-        const urlApi = this.feedelegatorAPI + "?" + `authorization=${this.authorizationID}`
-        const claimMethod = this.$connex.thor.account(this.faucetAddress).method(this.claimABI)
-        const clause = claimMethod.asClause()
-        const msg:Connex.Vendor.TxMessage = [
-            clause
-        ]
-        const signingService = this.$connex.vendor.sign('tx',msg)
-        signingService.delegate(urlApi).request().then(result => {
-            console.log(result);
-        }).catch(error => {
-            this.step = this.status.tryAgain.step
-        })
     }
 }
 </script>

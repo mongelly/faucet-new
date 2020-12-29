@@ -1,48 +1,91 @@
 <template>
     <header class="page-header">
         <div class="balance">
-            <span>VET:</span>
+            <span>Faucet VET:</span>
             <span>{{vet}}</span>
         </div>
         <div class="balance">
-            <span>VTHO:</span>
+            <span>Faucet VTHO:</span>
             <span>{{vtho}}</span>
+        </div>
+        <div class="balance">
+            <span>Delegator VTHO:</span>
+            <span>{{delegatorvtho}}</span>
         </div>
     </header>
 </template>
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component
 export default class PageHeader extends Vue {
-    public balance = '0x0'
-    public energy = '0x0'
-    private account = this.$connex.thor.account(
-        '0x4f6FC409e152D33843Cf4982d414C1Dd0879277e'
-    )
+    public balance = '0x0';
+    public energy = '0x0';
+    public delegatorenergy = '0x0';
+    private faucetAddress = '0x2b990f387B513f6afA6b87A73F6533F2F19407ce';
+    private account = connex.thor.account(this.faucetAddress);
+    private delegatorAddr: string = '';
+
+    private getDelegatorABI = {
+    constant: true,
+    inputs: [],
+    name: 'getDelegator',
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+      },
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
+    };
 
     get vet() {
-        const result = parseInt(this.balance, 16) / 1e18
+        const result = parseInt(this.balance, 16) / 1e18;
 
-        return Math.round(result).toLocaleString()
+        return Math.round(result).toLocaleString();
     }
 
     get vtho() {
-        const result = parseInt(this.energy, 16) / 1e18
+        const result = parseInt(this.energy, 16) / 1e18;
 
-        return Math.round(result).toLocaleString()
+        return Math.round(result).toLocaleString();
     }
+
+    get delegatorvtho() {
+        const result = parseInt(this.delegatorenergy, 16) / 1e18;
+
+        return Math.round(result).toLocaleString();
+    }
+
     public async setBalance() {
-        const theAccount = await this.account.get()
-        this.balance = theAccount.balance
-        this.energy = theAccount.energy
+        const theAccount = await this.account.get();
+        this.balance = theAccount.balance;
+        this.energy = theAccount.energy;
     }
+
+    public async setDelegatorBalance() {
+        if (this.delegatorAddr !== '0x0000000000000000000000000000000000000000') {
+            const delegator = connex.thor.account(this.delegatorAddr);
+            this.delegatorenergy = (await delegator.get()).energy;
+        } else {
+            this.delegatorenergy = '0x00';
+        }
+    }
+
     public async created() {
-        this.setBalance()
-        const ticker = this.$connex.thor.ticker()
-        for (;;) {
-            await ticker.next()
-            await this.setBalance()
+        const abiMethod = await this.account.method(this.getDelegatorABI);
+        const output = await abiMethod.call();
+        this.delegatorAddr = (output.decoded as any)[0];
+
+        this.setBalance();
+        this.setDelegatorBalance();
+        const ticker = connex.thor.ticker();
+        for (; ;) {
+            await ticker.next();
+            await this.setBalance();
+            await this.setDelegatorBalance();
         }
     }
 }
@@ -60,7 +103,7 @@ export default class PageHeader extends Vue {
     display: flex;
 }
 .balance span:first-of-type {
-    width: 100px;
+    width: 250px;
     padding-right: 10px;
     text-align: right;
 }
