@@ -105,7 +105,7 @@ export default class App extends Vue {
 
     private isTestNet = true;
 
-    private faucetAddress = '0x2b990f387B513f6afA6b87A73F6533F2F19407ce';
+    private faucetAddress = '0x2b990f387b513f6afa6b87a73f6533f2f19407ce';
     private claimABI = {
     constant: false,
     inputs: [],
@@ -115,7 +115,7 @@ export default class App extends Vue {
     stateMutability: 'nonpayable',
     type: 'function',
     };
-    private feedelegatorAPI = 'http://localhost:18050/sign';
+    private feedelegatorAPI = 'http://47.57.94.244:18050/sign';
     private authorizationID = 'c164997a-e4e9-4b06-8242-c4389328704e';
 
     public async created() {
@@ -178,6 +178,7 @@ export default class App extends Vue {
                 raw: unsignedTx.raw,
                 origin: unsignedTx.origin,
             });
+
             const token = await this.$recaptcha('claim');
             const urlApi = this.feedelegatorAPI + '?' + `authorization=${this.authorizationID}&recaptcha=${token}`;
             const resp = await fetch(urlApi, {
