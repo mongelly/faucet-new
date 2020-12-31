@@ -115,7 +115,7 @@ export default class App extends Vue {
     stateMutability: 'nonpayable',
     type: 'function',
     };
-    private feedelegatorAPI = 'http://47.57.94.244:18050/sign';
+    private feedelegatorAPI = 'https://omg.outofgas.io:28050/sign';
     private authorizationID = 'c164997a-e4e9-4b06-8242-c4389328704e';
 
     public async created() {
