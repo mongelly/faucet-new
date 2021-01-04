@@ -187,7 +187,7 @@ export default class App extends Vue {
 
         const signingService = this.$connex.vendor.sign('tx', msg);
         signingService
-        .gas(60000)
+        .gas(100000)
         .delegate(urlApi, this.delegatorAddr)
         .request()
         .then((result) => {
