@@ -22,8 +22,7 @@ export default class PageHeader extends Vue {
     public balance = '0x0';
     public energy = '0x0';
     public delegatorenergy = '0x0';
-    private faucetAddress = '0x2b990f387b513f6afa6b87a73f6533f2f19407ce';
-    private account = connex.thor.account(this.faucetAddress);
+    private faucetSC = this.$connex.thor.account(this.$faucetScAddr);
     private delegatorAddr: string = '';
 
     private getDelegatorABI = {
@@ -60,14 +59,14 @@ export default class PageHeader extends Vue {
     }
 
     public async setBalance() {
-        const theAccount = await this.account.get();
+        const theAccount = await this.faucetSC.get();
         this.balance = theAccount.balance;
         this.energy = theAccount.energy;
     }
 
     public async setDelegatorBalance() {
         if (this.delegatorAddr !== '0x0000000000000000000000000000000000000000') {
-            const delegator = connex.thor.account(this.delegatorAddr);
+            const delegator = this.$connex.thor.account(this.delegatorAddr);
             this.delegatorenergy = (await delegator.get()).energy;
         } else {
             this.delegatorenergy = '0x00';
@@ -75,13 +74,13 @@ export default class PageHeader extends Vue {
     }
 
     public async created() {
-        const abiMethod = await this.account.method(this.getDelegatorABI);
+        const abiMethod = await this.faucetSC.method(this.getDelegatorABI);
         const output = await abiMethod.call();
         this.delegatorAddr = (output.decoded as any)[0];
 
         this.setBalance();
         this.setDelegatorBalance();
-        const ticker = connex.thor.ticker();
+        const ticker = this.$connex.thor.ticker();
         for (; ;) {
             await ticker.next();
             await this.setBalance();

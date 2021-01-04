@@ -105,7 +105,6 @@ export default class App extends Vue {
 
     private isTestNet = true;
 
-    private faucetAddress = '0x2b990f387b513f6afa6b87a73f6533f2f19407ce';
     private claimABI = {
     constant: false,
     inputs: [],
@@ -115,12 +114,37 @@ export default class App extends Vue {
     stateMutability: 'nonpayable',
     type: 'function',
     };
+
+    private getDelegatorABI = {
+    constant: true,
+    inputs: [],
+    name: 'getDelegator',
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+      },
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
+    };
+
+
     private feedelegatorAPI = 'https://omg.outofgas.io:28050/sign';
     private authorizationID = 'c164997a-e4e9-4b06-8242-c4389328704e';
+
+    private delegatorAddr: string = '';
 
     public async created() {
         this.$ga.page('/faucet');
         this.isTestNet = await this.checkNet();
+        if (this.isTestNet)  {
+            const faucetSC =  this.$connex.thor.account(this.$faucetScAddr);
+            const abiMethod = await faucetSC.method(this.getDelegatorABI);
+            const output = await abiMethod.call();
+            this.delegatorAddr = (output.decoded as any)[0];
+        }
     }
 
     public openSync() {
@@ -143,7 +167,7 @@ export default class App extends Vue {
     }
 
     public async checkNet() {
-        const block = connex.thor.block(0);
+        const block = this.$connex.thor.block(0);
         const firstBlock = await block.get();
         return firstBlock!.id === '0x000000000b2bce3c70bc649a02749e8687721b09ed2e15997f466536b20bb127';
     }
@@ -153,49 +177,25 @@ export default class App extends Vue {
     }
 
     public async signTx() {
-        const claimMethod = connex.thor.account(this.faucetAddress).method(this.claimABI);
+        const claimMethod = this.$connex.thor.account(this.$faucetScAddr).method(this.claimABI);
         const clause = claimMethod.asClause();
         const msg: Connex.Vendor.TxMessage = [
             clause,
         ];
-        const signingService = connex.vendor.sign('tx');
+        const token = await this.$recaptcha('claim');
+        const urlApi = this.feedelegatorAPI + '?' + `authorization=${this.authorizationID}&recaptcha=${token}`;
 
+        const signingService = this.$connex.vendor.sign('tx', msg);
         signingService
         .gas(60000)
-        .delegate(this.delegationHandler)
-        .request(msg)
+        .delegate(urlApi, this.delegatorAddr)
+        .request()
         .then((result) => {
             this.txid = result.txid,
             this.step = status.success.step;
         }).catch((err) => {
             this.step = this.status.tryAgain.step;
         });
-    }
-
-    private async delegationHandler(unsignedTx: { raw: string, origin: string }) {
-        try {
-            const requestbody = JSON.stringify({
-                raw: unsignedTx.raw,
-                origin: unsignedTx.origin,
-            });
-
-            const token = await this.$recaptcha('claim');
-            const urlApi = this.feedelegatorAPI + '?' + `authorization=${this.authorizationID}&recaptcha=${token}`;
-            const resp = await fetch(urlApi, {
-                method: 'post',
-                cache: 'no-cache',
-                headers: {'Content-Type': 'application/json'},
-                body: requestbody,
-            });
-            if (resp.status === 200 && resp.headers.get('content-type')!.includes('application/json')) {
-                const body = await resp.json();
-                return { signature: body.signature };
-            } else {
-                throw new Error('delegation error');
-            }
-        } catch (error) {
-            throw new Error('delegation error');
-        }
     }
 }
 </script>
