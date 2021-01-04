@@ -17,23 +17,7 @@ But if you want to test `Sync 2.0`, you can check [connex2.0 branch](https://git
 
 ## 2. Working Sequence Diagram
 
-```plantuml
-@startuml
-actor user
-"user" -> "faucet_front":click 'Claim Tokens'
-"faucet_front" -> "faucet_front":build VIP191 tx body
-"faucet_front" -> "connex":call connex
-"connex" -> "user": show wallet dialog
-"user" -> "connex":choose wallet and click 'NEXT'
-"faucet_front" -> "VIP201_Serve":send request to VIP201 serve
-"VIP201_Serve" -> "VIP201_Serve":check request and sign it
-"VIP201_Serve" -> "connex": return delegataion signature
-"connex" -> "user":watting for user sign
-"user" -> "connex":sign VIP191 tx
-"connex" -> "faucet_smartcontract":send tx and call 'claim' method
-"faucet_smartcontract" -> "user": check tx and send VET and VTHO to user
-@enduml
-```
+![image](http://www.plantuml.com/plantuml/png/RLB1QiCm3BtxAqGkEGtMtTR3A8p2Tja62sMtejfgOkfOp9RNxk_dkiaWu4l0qdlIotlQHC4WQNGAjN2052cevlfjuEu9cYCcJR8_1lRIhBMp-WJjiqCxGiSdyh5L2qoDTKZM6TYzVgmULo0NEB3vhR4qUq-Nl0MTWzj3pSK2ABBM40S-mpc3IC1OTDnFYfTJ1kP8CmwzWKdzs_QhgwhE2X_kL_jF2Z_Kh2DbIg3lH55066vTYDUkMc1hR3sGFitqiZtQteEL6dMMdF6IWWT3ZdeKjEmB3NELQbQSKSJw7evJSWLTCwCi_qzWEMeo8euO9DSbe9Rfz-LIf9T0MdrDlOMHP62ZghH5JCM2UKGPjzjsvR7hNjv1-7Piczp9z_S7)
 
 ## 3. Stormbreaker Feedelegation Serve([VIP201](https://github.com/vechain/VIPs/blob/master/vips/VIP-201.md))
 

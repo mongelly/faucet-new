@@ -1,0 +1,15 @@
+@startuml
+actor user
+"user" -> "faucet_front":click 'Claim Tokens'
+"faucet_front" -> "faucet_front":build VIP191 tx body
+"faucet_front" -> "connex":call connex
+"connex" -> "user": show wallet dialog
+"user" -> "connex":choose wallet and click 'NEXT'
+"faucet_front" -> "VIP201_Serve":send request to VIP201 serve
+"VIP201_Serve" -> "VIP201_Serve":check request and sign it
+"VIP201_Serve" -> "connex": return delegataion signature
+"connex" -> "user":watting for user sign
+"user" -> "connex":sign VIP191 tx
+"connex" -> "faucet_smartcontract":send tx and call 'claim' method
+"faucet_smartcontract" -> "user": check tx and send VET and VTHO to user
+@enduml
