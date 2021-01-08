@@ -8,10 +8,22 @@ contract Faucet {
     Extension extension = Builtin.getExtension();
     
     address delegator;
-    uint256 defaultVETAmount  = 100  * 1000000000000000000;
-    uint256 defaultVTHOAmount = 5000 * 1000000000000000000;
+    uint256 defaultVETAmount;
+    uint256 defaultVTHOAmount;
     
     constructor() public {
+        defaultVETAmount = 100  * 1000000000000000000;
+        defaultVTHOAmount = 5000 * 1000000000000000000;
+    }
+    
+    function setDefaultAmount(uint256 _vetamount,uint256 _vthoamount) public isMaster{
+        defaultVETAmount = _vetamount * 1000000000000000000;
+        defaultVTHOAmount = _vthoamount * 1000000000000000000;
+        emit DefaultAmountChanged(_vetamount,_vthoamount);
+    }
+    
+    function getDefaultAmount() public view returns(uint256,uint256){
+        return (defaultVETAmount,defaultVTHOAmount);
     }
     
     
@@ -46,6 +58,7 @@ contract Faucet {
     }
     
     event DelegatorChanged(address indexed _delegator);
+    event DefaultAmountChanged(uint256 indexed _vet,uint256 indexed _vtho);
     
     modifier isMaster(){
         require(msg.sender == this.$master(),"permission denied");

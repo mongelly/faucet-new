@@ -104,8 +104,7 @@ export default class App extends Vue {
     private respError = '';
 
     private isTestNet = true;
-
-    private faucetAddress = '0x2b990f387b513f6afa6b87a73f6533f2f19407ce';
+    private faucetAddress = '0xf5bae8079C294b65DafE28f21acD4F627572cf40';
     private claimABI = {
     constant: false,
     inputs: [],

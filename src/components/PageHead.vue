@@ -22,7 +22,7 @@ export default class PageHeader extends Vue {
     public balance = '0x0';
     public energy = '0x0';
     public delegatorenergy = '0x0';
-    private faucetAddress = '0x2b990f387b513f6afa6b87a73f6533f2f19407ce';
+    private faucetAddress = '0xf5bae8079C294b65DafE28f21acD4F627572cf40';
     private account = connex.thor.account(this.faucetAddress);
     private delegatorAddr: string = '';
 
