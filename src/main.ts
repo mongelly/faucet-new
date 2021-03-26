@@ -13,7 +13,7 @@ Vue.use(VueReCaptcha, {
   },
 });
 
-const connex = new Connex({nodeUrl: 'https://testnet.veblocks.net', network: 'test'});
+const connex = new Connex({node: 'https://testnet.veblocks.net', network: 'test'});
 const faucetScAddr = '0xf5bae8079c294b65dafe28f21acd4f627572cf40';
 
 
